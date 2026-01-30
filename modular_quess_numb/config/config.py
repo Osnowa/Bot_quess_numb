@@ -1,13 +1,13 @@
-from dataclasses import dataclass
 from environs import Env
+from dataclasses import dataclass
+
+env = Env()
+env.read_env()
 
 @dataclass
 class TgBot:
-    token: str  # Токен для доступа к телеграм-боту
+    token: str
 
-
-def load_config():
-    env = Env()
-    env.read_env()
-    setting = TgBot(token=env("BOT_TOKEN"))
-    return setting
+def load_config() -> TgBot:
+    """Загрузка конфигурации из переменных окружения"""
+    return TgBot(token=env.str("BOT_TOKEN"))
