@@ -5,7 +5,7 @@ from modular_quess_numb.lexicon.lexicon import POSITIVE_ANSWERS, NEGATIVE_ANSWER
 from modular_quess_numb.config.users import users, Game
 
 router = Router()
-DEFAULT_ATTEMPTS = 5
+DEFAULT_ATTEMPTS = 5 # попыток 5
 
 def get_game(user_id: int) -> Game:
     """Получение объекта игры пользователя"""
