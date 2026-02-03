@@ -3,9 +3,8 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from modular_quess_numb.lexicon.lexicon import POSITIVE_ANSWERS, NEGATIVE_ANSWERS, LEXICON_RU
 import random
-from modular_quess_numb.database.games import start_new_game, get_active_game
 from modular_quess_numb.database.games import (
-    get_active_game, finish_game, decrease_attempts
+    get_active_game, finish_game, decrease_attempts, start_new_game, ATTEMPTS
 )
 from modular_quess_numb.database.users import (
     increment_total_games, increment_wins, get_user_by_telegram_id, create_user
@@ -24,14 +23,9 @@ async def process_start_command(message: Message) -> None:
 
 @router.message(Command(commands='help'))
 async def process_help_command(message: Message) -> None:
-    telegram_id = message.from_user.id
-    user = get_user_by_telegram_id(telegram_id)
-    user_id = user[0]
-
-    game = get_active_game(user_id)
     await message.answer(
         f'Правила игры:\n\nЯ загадываю число от 1 до 100, '
-        f'а вам нужно его угадать\nУ вас есть {game[2]} попыток\n\n'
+        f'а вам нужно его угадать\nУ вас есть {ATTEMPTS} попыток\n\n'
         f'Доступные команды:\n/help - правила и команды\n/cancel - выйти из игры\n'
         f'/stat - статистика\n\nДавай сыграем?'
     )
@@ -46,9 +40,17 @@ async def process_stat_command(message: Message) -> None:
         f'Игр выиграно: {user[3]}'
     )
 
-@router.message(Command(commands='cancel'))
+@router.message(Command(commands='cancel')) # хендлер на обработку команды
 async def process_cancel_command(message: Message) -> None:
-    pass
+    telegram_id = message.from_user.id
+    user = get_user_by_telegram_id(telegram_id)
+    game = get_active_game(user[0])
+    if not game:
+        await message.answer("Эй, мы еще не играем, что бы выходить =)")
+    else:
+        finish_game(game[0])
+        await message.answer("Очень жаль что ты прервал игру, возвращайся ! ")
+
 
 @router.message(F.text.lower().in_(POSITIVE_ANSWERS))
 async def process_positive_answer(message: Message):
@@ -73,7 +75,7 @@ async def process_positive_answer(message: Message):
 
 @router.message(F.text.lower().in_(NEGATIVE_ANSWERS))
 async def process_negative_answer(message: Message) -> None:
-    pass
+    await message.answer("Дружище, я принимаю только положительные числа от 1 до 100")
 
 @router.message(lambda x: x.text and x.text.isdigit() and 1 <= int(x.text) <= 100)
 async def process_numbers_answer(message: Message):
