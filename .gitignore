@@ -1,2 +1,4 @@
 .idea
 .env
+modular_quess_numb/database/bot.db
+
